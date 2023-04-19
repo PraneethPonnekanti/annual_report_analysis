@@ -1,0 +1,7 @@
+pip
+streamlit
+fitz
+io
+requests
+datetime
+spacy
