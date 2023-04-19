@@ -4,3 +4,4 @@ fitz
 requests
 datetime
 spacy
+frontend
