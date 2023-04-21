@@ -50,17 +50,7 @@ def display_highlights(highlights):
         for keyword, group in groups:
             st.write(f"Occurrences of '{keyword}' in the annual report:")
             st.dataframe(group[["page_number", "paragraph_number", "paragraph_text"]], width=800, height=400)
-"""            
-def display_highlights(highlights):
 
-    for keyword, occurrences in highlights.items():
-        st.write(f"Occurrences of '{keyword}' in the annual report:")
-        table_data = []
-        for occurrence in occurrences:
-            table_data.append([occurrence[0], occurrence[1], occurrence[2]])
-        st.table(table_data)
-
-"""
 def paginate_report(pages):
     """
     Paginate the annual report.
