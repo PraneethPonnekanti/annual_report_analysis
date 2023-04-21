@@ -1,18 +1,21 @@
 import requests
 from io import BytesIO
 import streamlit as st
-from PyPDF2 import PdfFileReader
+import fitz
+import pymupdf
 import re
+
 
 def process_pdf_file(pdf_file):
     """
     Process the PDF file and return the pages and highlighted occurrences of keywords.
     """
-    num_pages = pdf_file.getNumPages()
+    doc = fitz.open(stream=pdf_file.read())
+    num_pages = doc.page_count
     pages = []
     for i in range(num_pages):
-        page = pdf_file.getPage(i)
-        text = page.extractText()
+        page = doc.load_page(i)
+        text = page.get_text()
         pages.append(text)
 
     # Highlight the occurrences of the keywords
@@ -27,11 +30,30 @@ def process_pdf_file(pdf_file):
                 paragraphs = page.split("\n\n")
                 for j, paragraph in enumerate(paragraphs):
                     if re.search(r"\b{}\b".format(keyword), paragraph, re.IGNORECASE):
-                        occurrences.append((i+1, j+1, paragraph))
+                        occurrences.append((i + 1, j + 1, paragraph))
 
             highlights[keyword] = occurrences
 
     return pages, highlights
+
+
+def display_highlights(highlights):
+    """
+    Display the highlighted occurrences of keywords.
+    """
+    for keyword, occurrences in highlights.items():
+        st.write(f"Occurrences of '{keyword}' in the annual report:")
+        for occurrence in occurrences:
+            st.write(f"Page {occurrence[0]}")
+            st.write(occurrence[2], unsafe_allow_html=True)
+
+
+def paginate_report(pages):
+    """
+    Paginate the annual report.
+    """
+    page_num = st.slider("Page", min_value=1, max_value=len(pages))
+    st.write(pages[page_num - 1])
 
 
 def main():
@@ -44,19 +66,9 @@ def main():
         # File uploader
         uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
         if uploaded_file is not None:
-            pdf_file = PdfFileReader(uploaded_file)
-            pages, highlights = process_pdf_file(pdf_file)
-
-            # Display the highlighted occurrences of keywords
-            for keyword, occurrences in highlights.items():
-                st.write(f"Occurrences of '{keyword}' in the annual report:")
-                for occurrence in occurrences:
-                    st.write(f"Page {occurrence[0]}")
-                    st.write(occurrence[2], unsafe_allow_html=True)
-
-            # Paginate the annual report
-            page_num = st.slider("Page", min_value=1, max_value=len(pages))
-            st.write(pages[page_num-1])
+            pages, highlights = process_pdf_file(uploaded_file)
+            display_highlights(highlights)
+            paginate_report(pages)
 
     else:
         # URL input
@@ -66,23 +78,22 @@ def main():
             response = requests.get(pdf_url)
             if response.status_code == 200:
                 pdf_data = response.content
-                pdf_file = PdfFileReader(BytesIO(pdf_data))
+                pdf_file = BytesIO(pdf_data)
 
                 # Process the annual report file
                 pages, highlights = process_pdf_file(pdf_file)
-
-                # Display the highlighted occurrences of keywords
-                for keyword, occurrences in highlights.items():
-                    st.write(f"Occurrences of '{keyword}' in the annual report:")
-                    for occurrence in occurrences:
-                        st.write(f"Page {occurrence[0]}")
-                        st.write(occurrence[2], unsafe_allow_html=True)
-
-                # Paginate the annual report
-                page_num = st.slider("Page", min_value=1, max_value=len(pages))
-                st.write(pages[page_num-1])
+                display_highlights(highlights)
+                paginate_report(pages)
             else:
                 st.error("Error downloading PDF file from URL.")
+
+    # Search button
+    if st.button("Search"):
+        keywords = st.text_input("Enter keywords (separated by commas)")
+        if keywords:
+            pages, highlights = process_pdf_file(pdf_file)
+            display_highlights(highlights)
+            paginate_report(pages)
 
 
 if __name__ == '__main__':
