@@ -1,19 +1,18 @@
 import requests
 from io import BytesIO
 import streamlit as st
-import fitz
+from PyPDF2 import PdfFileReader
 import re
 
 def process_pdf_file(pdf_file):
     """
     Process the PDF file and return the pages and highlighted occurrences of keywords.
     """
-    doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
-    num_pages = doc.page_count
+    num_pages = pdf_file.getNumPages()
     pages = []
     for i in range(num_pages):
-        page = doc.load_page(i)
-        text = page.get_text()
+        page = pdf_file.getPage(i)
+        text = page.extractText()
         pages.append(text)
 
     # Highlight the occurrences of the keywords
@@ -45,7 +44,8 @@ def main():
         # File uploader
         uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
         if uploaded_file is not None:
-            pages, highlights = process_pdf_file(uploaded_file)
+            pdf_file = PdfFileReader(uploaded_file)
+            pages, highlights = process_pdf_file(pdf_file)
 
             # Display the highlighted occurrences of keywords
             for keyword, occurrences in highlights.items():
@@ -66,7 +66,7 @@ def main():
             response = requests.get(pdf_url)
             if response.status_code == 200:
                 pdf_data = response.content
-                pdf_file = BytesIO(pdf_data)
+                pdf_file = PdfFileReader(BytesIO(pdf_data))
 
                 # Process the annual report file
                 pages, highlights = process_pdf_file(pdf_file)
