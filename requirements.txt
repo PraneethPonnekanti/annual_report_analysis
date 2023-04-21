@@ -3,4 +3,4 @@ streamlit
 requests
 datetime
 spacy
-pypdf2
+pypdf4
