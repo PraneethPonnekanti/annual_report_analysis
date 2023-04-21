@@ -1,7 +1,7 @@
 pip
 streamlit
-fitz
 requests
 datetime
 spacy
 frontend
+fitz
