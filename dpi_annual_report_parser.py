@@ -91,7 +91,7 @@ def main():
             else:
                 st.sidebar.error("Error downloading PDF file from URL.")
        # Search button
-    st.sidebar.button("Search")
+    st.sidebar.button("Parse PDF")
    # if st.sidebar.button("Search"):
     #    keywords = st.text_input("Enter keywords (separated by commas)")
      #   if keywords:
