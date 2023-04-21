@@ -35,21 +35,18 @@ def process_pdf_file(pdf_file):
 
     return pages, highlights
 
+
 def display_highlights(highlights):
     """
-    Display the highlighted occurrences of keywords in a beautifully formatted table.
+    Display the highlighted occurrences of keywords in a formatted table.
     """
-    if highlights:
-        # Create a DataFrame from the highlights list
-        df = pd.DataFrame(highlights, columns=["keyword", "page_number", "paragraph_number", "paragraph_text"])
+    for keyword, occurrences in highlights.items():
+        st.write(f"Occurrences of '{keyword}' in the annual report:")
+        table_data = []
+        for occurrence in occurrences:
+            table_data.append([occurrence[0], occurrence[1], occurrence[2]])
+        st.table(table_data)
 
-        # Group the DataFrame by keyword
-        groups = df.groupby("keyword")
-
-        # Display the highlights for each keyword
-        for keyword, group in groups:
-            st.write(f"Occurrences of '{keyword}' in the annual report:")
-            st.dataframe(group[["page_number", "paragraph_number", "paragraph_text"]], width=800, height=400)
 
 def paginate_report(pages):
     """
@@ -90,13 +87,9 @@ def main():
                 paginate_report(pages)
             else:
                 st.sidebar.error("Error downloading PDF file from URL.")
-       # Search button
-    st.sidebar.button("Parse PDF")
-   # if st.sidebar.button("Search"):
-    #    keywords = st.text_input("Enter keywords (separated by commas)")
-     #   if keywords:
-      #      pages, highlights = process_pdf_file(BytesIO(pdf_data))
-       #     display_highlights(highlights)
+
+    # Add a search button
+    st.sidebar.button("Search")
 
 
 if __name__ == '__main__':
