@@ -35,11 +35,24 @@ def process_pdf_file(pdf_file):
 
     return pages, highlights
 
-
 def display_highlights(highlights):
     """
-    Display the highlighted occurrences of keywords in a formatted table.
+    Display the highlighted occurrences of keywords in a beautifully formatted table.
     """
+    if highlights:
+        # Create a DataFrame from the highlights list
+        df = pd.DataFrame(highlights, columns=["keyword", "page_number", "paragraph_number", "paragraph_text"])
+
+        # Group the DataFrame by keyword
+        groups = df.groupby("keyword")
+
+        # Display the highlights for each keyword
+        for keyword, group in groups:
+            st.write(f"Occurrences of '{keyword}' in the annual report:")
+            st.dataframe(group[["page_number", "paragraph_number", "paragraph_text"]], width=800, height=400)
+"""            
+def display_highlights(highlights):
+
     for keyword, occurrences in highlights.items():
         st.write(f"Occurrences of '{keyword}' in the annual report:")
         table_data = []
@@ -47,7 +60,7 @@ def display_highlights(highlights):
             table_data.append([occurrence[0], occurrence[1], occurrence[2]])
         st.table(table_data)
 
-
+"""
 def paginate_report(pages):
     """
     Paginate the annual report.
