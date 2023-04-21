@@ -1,8 +1,7 @@
 import requests
 from io import BytesIO
 import streamlit as st
-import fitz
-import pymupdf
+from PyPDF4 import PdfFileReader
 import re
 
 
@@ -10,16 +9,16 @@ def process_pdf_file(pdf_file):
     """
     Process the PDF file and return the pages and highlighted occurrences of keywords.
     """
-    doc = fitz.open(stream=pdf_file.read())
-    num_pages = doc.page_count
+    pdf_reader = PdfFileReader(pdf_file)
+    num_pages = pdf_reader.getNumPages()
     pages = []
     for i in range(num_pages):
-        page = doc.load_page(i)
-        text = page.get_text()
+        page = pdf_reader.getPage(i)
+        text = page.extractText()
         pages.append(text)
 
     # Highlight the occurrences of the keywords
-    keywords = st.text_input("Enter keywords (separated by commas)")
+    keywords = st.sidebar.text_input("Enter keywords (separated by commas)")
     highlights = {}
     if keywords:
         keywords_list = keywords.split(",")
@@ -39,13 +38,14 @@ def process_pdf_file(pdf_file):
 
 def display_highlights(highlights):
     """
-    Display the highlighted occurrences of keywords.
+    Display the highlighted occurrences of keywords in a formatted table.
     """
     for keyword, occurrences in highlights.items():
         st.write(f"Occurrences of '{keyword}' in the annual report:")
+        table_data = []
         for occurrence in occurrences:
-            st.write(f"Page {occurrence[0]}")
-            st.write(occurrence[2], unsafe_allow_html=True)
+            table_data.append([occurrence[0], occurrence[1], occurrence[2]])
+        st.table(table_data)
 
 
 def paginate_report(pages):
@@ -57,14 +57,15 @@ def paginate_report(pages):
 
 
 def main():
-    st.title("Annual Report Parser")
+    st.set_page_config(page_title="Annual Report Parser", layout="wide")
 
-    # File upload option
-    file_option = st.radio("Choose file upload option", ("Upload a file", "Use a URL"))
+    # Create a sidebar for inputs
+    st.sidebar.title("Annual Report Parser")
+    file_option = st.sidebar.radio("Choose file upload option", ("Upload a file", "Use a URL"))
 
     if file_option == "Upload a file":
         # File uploader
-        uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
+        uploaded_file = st.sidebar.file_uploader("Choose a PDF file", type="pdf")
         if uploaded_file is not None:
             pages, highlights = process_pdf_file(uploaded_file)
             display_highlights(highlights)
@@ -72,7 +73,7 @@ def main():
 
     else:
         # URL input
-        pdf_url = st.text_input("Enter PDF URL")
+        pdf_url = st.sidebar.text_input("Enter PDF URL")
         if pdf_url:
             # Download the PDF file from the URL
             response = requests.get(pdf_url)
@@ -85,15 +86,13 @@ def main():
                 display_highlights(highlights)
                 paginate_report(pages)
             else:
-                st.error("Error downloading PDF file from URL.")
-
-    # Search button
+                st.sidebar.error("Error downloading PDF file from URL.")
+       # Search button
     if st.button("Search"):
         keywords = st.text_input("Enter keywords (separated by commas)")
         if keywords:
-            pages, highlights = process_pdf_file(pdf_file)
+            pages, highlights = process_pdf_file(BytesIO(pdf_data))
             display_highlights(highlights)
-            paginate_report(pages)
 
 
 if __name__ == '__main__':
