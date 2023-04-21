@@ -88,7 +88,7 @@ def main():
             else:
                 st.sidebar.error("Error downloading PDF file from URL.")
        # Search button
-    if st.button("Search"):
+    if st.sidebar.button("Search"):
         keywords = st.text_input("Enter keywords (separated by commas)")
         if keywords:
             pages, highlights = process_pdf_file(BytesIO(pdf_data))
